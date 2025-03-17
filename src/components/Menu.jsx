@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaSearch, FaPhoneAlt } from "react-icons/fa";
+import { FaSearch, FaPhoneAlt, FaBars, FaTimes } from "react-icons/fa";
 
 export default function RestaurantMenu() {
   const [menuData, setMenuData] = useState([]);
@@ -9,6 +9,7 @@ export default function RestaurantMenu() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [cart, setCart] = useState([]);
+  const [showSidebar, setShowSidebar] = useState(false);
 
   useEffect(() => {
     axios
@@ -37,15 +38,13 @@ export default function RestaurantMenu() {
   const handleCategoryClick = (categoryId) => {
     setSelectedCategory(categoryId);
     setSearchQuery("");
+    setShowSidebar(false); // Close sidebar on mobile after selecting category
   };
 
-  const addToCart = (item) => {
-    setCart((prevCart) => [...prevCart, item]);
-  };
+  const addToCart = (item) => setCart((prevCart) => [...prevCart, item]);
 
-  const removeFromCart = (index) => {
+  const removeFromCart = (index) =>
     setCart((prevCart) => prevCart.filter((_, i) => i !== index));
-  };
 
   if (loading) return <div className="text-center text-xl p-8">Loading...</div>;
   if (error) return <div className="text-center text-red-500 p-8">{error}</div>;
@@ -73,7 +72,7 @@ export default function RestaurantMenu() {
             <p className="text-sm text-gray-600">📍 Valsad, Gujarat, India</p>
           </div>
         </div>
-        <div className="text-center">
+        <div className="hidden sm:block text-center">
           <p className="text-green-600 font-semibold">Restaurant Is Open</p>
           <p className="text-sm text-gray-600">Timing: 07:00 AM - 11:00 PM ℹ️</p>
         </div>
@@ -89,17 +88,31 @@ export default function RestaurantMenu() {
           </button>
         </div>
       </div>
+
       {/* Main Content */}
-      <div className="flex p-6">
+      <div className="flex flex-col sm:flex-row p-4">
         {/* Categories Sidebar */}
-        <div className="w-1/4 p-4 border-r">
+        <button
+          className="sm:hidden flex items-center px-4 py-2 bg-blue-500 text-white rounded-md mb-4"
+          onClick={() => setShowSidebar(!showSidebar)}
+        >
+          {showSidebar ? <FaTimes /> : <FaBars />} Categories
+        </button>
+
+        <div
+          className={`fixed inset-0 bg-white w-64 p-4 border-r sm:relative sm:block transition-transform ${
+            showSidebar ? "translate-x-0" : "-translate-x-full sm:translate-x-0"
+          }`}
+        >
           <h2 className="text-lg font-bold text-gray-700 mb-4">CATEGORIES</h2>
           <ul>
             {menuData.map((category) => (
               <li
                 key={category.CategryId}
                 className={`p-2 cursor-pointer hover:bg-gray-100 rounded-md transition ${
-                  selectedCategory === category.CategryId ? "bg-blue-100 font-bold" : ""
+                  selectedCategory === category.CategryId
+                    ? "bg-blue-100 font-bold"
+                    : ""
                 }`}
                 onClick={() => handleCategoryClick(category.CategryId)}
               >
@@ -108,8 +121,9 @@ export default function RestaurantMenu() {
             ))}
           </ul>
         </div>
+
         {/* Menu Items */}
-        <div className="w-2/4 p-4">
+        <div className="flex-1 p-4">
           <div className="flex items-center mb-4">
             <input
               type="text"
@@ -147,8 +161,9 @@ export default function RestaurantMenu() {
             ))}
           </div>
         </div>
+
         {/* Cart Section */}
-        <div className="w-1/4 p-4 border-l">
+        <div className="w-full sm:w-1/4 p-4 border-t sm:border-l">
           <h2 className="text-lg font-bold text-gray-700 mb-4">Your Cart</h2>
           {cart.length === 0 ? (
             <div className="flex flex-col items-center">
@@ -157,13 +172,23 @@ export default function RestaurantMenu() {
                 alt="Empty Cart"
                 className="w-24 mb-2"
               />
-              <p className="text-center text-gray-500">Your Cart Is Empty! 🍽️😋</p>
+              <p className="text-center text-gray-500">
+                Your Cart Is Empty! 🍽️😋
+              </p>
             </div>
           ) : (
             cart.map((item, index) => (
-              <div key={index} className="flex justify-between p-2 border-b">
+              <div
+                key={index}
+                className="flex justify-between p-2 border-b items-center"
+              >
                 <span>{item.ItemName}</span>
-                <button onClick={() => removeFromCart(index)} className="text-red-500">❌</button>
+                <button
+                  onClick={() => removeFromCart(index)}
+                  className="text-red-500"
+                >
+                  ❌
+                </button>
               </div>
             ))
           )}
